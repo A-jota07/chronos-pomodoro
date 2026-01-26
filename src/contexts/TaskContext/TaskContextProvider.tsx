@@ -5,13 +5,27 @@ import { initialTaskState } from './initialTaskState';
 import { TaskActionTypes } from './taskActions';
 import { TaskContext } from './TaskContext';
 import { TaskReducer } from './taskReducer';
+import type { TaskStateModel } from '../../models/TaskStateModel';
 
 type TaskContextProviderProps = {
     children: React.ReactNode;
 };
 
 export function TaskContextProvider({ children }: TaskContextProviderProps) {
-    const [state, dispatch] = useReducer(TaskReducer, initialTaskState);
+    const [state, dispatch] = useReducer(TaskReducer, initialTaskState, () => {
+        const storegeState = localStorage.getItem('state');
+
+        if (storegeState === null) return initialTaskState;
+
+        const parsedStoreState = JSON.parse(storegeState) as TaskStateModel;
+
+        return {
+            ...parsedStoreState,
+            activeTask: null,
+            secondsRemaining: 0,
+            formattedSecondsRemaining: '00:00',
+        };
+    });
     const playBeepRef = useRef<() => void | null>(null);
     const workerRef = useRef(TimerWorkerManager.getInstance());
 
@@ -39,12 +53,12 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
     }, []);
 
     useEffect(() => {
+        localStorage.setItem('state', JSON.stringify(state));
         if (state.activeTask) {
             workerRef.current.postMessage(state);
         } else {
             workerRef.current.terminate();
             workerRef.current = TimerWorkerManager.getInstance();
-            // Set onmessage on new worker
             workerRef.current.onmessage(handleWorkerMessage);
         }
     }, [state]);

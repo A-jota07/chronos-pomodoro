@@ -42,6 +42,12 @@ export function History() {
 
                         <tbody>
                             {state.tasks.map(task => {
+                                const taskTypeDisctionary = {
+                                    workTime: 'Foco',
+                                    shortBreakTime: 'Descanso curto',
+                                    longBreakTime: 'Descanso longo',
+                                };
+
                                 return (
                                     <tr key={task.id}>
                                         <td>{task.name}</td>
@@ -53,7 +59,9 @@ export function History() {
                                                 state.activeTask,
                                             )}
                                         </td>
-                                        <td>{task.type}</td>
+                                        <td>
+                                            {taskTypeDisctionary[task.type]}
+                                        </td>
                                     </tr>
                                 );
                             })}

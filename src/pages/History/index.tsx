@@ -28,20 +28,6 @@ export function History() {
         },
     );
 
-    useEffect(() => {
-        if (!confirmClearHistory) return;
-
-        setConfirmClearHistory(false);
-
-        dispatch({ type: TaskActionTypes.RESET_STATE });
-    }, [confirmClearHistory, dispatch]);
-
-    useEffect(() => {
-        return () => {
-            showMessage.dismiss();
-        };
-    }, []);
-
     function handleSortTasks({ field }: Pick<SortTasksOptions, 'field'>) {
         const newDirection =
             sortTasksOptions.direction === 'desc' ? 'asc' : 'desc';
@@ -57,6 +43,13 @@ export function History() {
         });
     }
 
+    function handleResetHistory() {
+        showMessage.dismiss();
+        showMessage.confirm('Tem certeza?', confirmation => {
+            setConfirmClearHistory(confirmation);
+        });
+    }
+
     useEffect(() => {
         setSortTaskOptions(prevState => ({
             ...prevState,
@@ -68,12 +61,23 @@ export function History() {
         }));
     }, [state.tasks]);
 
-    function handleResetHistory() {
-        showMessage.dismiss();
-        showMessage.confirm('Tem certeza?', confirmation => {
-            setConfirmClearHistory(confirmation);
-        });
-    }
+    useEffect(() => {
+        document.title = 'Histórico de tarefas - Chronos Pomodoro';
+    }, []);
+
+    useEffect(() => {
+        if (!confirmClearHistory) return;
+
+        setConfirmClearHistory(false);
+
+        dispatch({ type: TaskActionTypes.RESET_STATE });
+    }, [confirmClearHistory, dispatch]);
+
+    useEffect(() => {
+        return () => {
+            showMessage.dismiss();
+        };
+    }, []);
 
     return (
         <MainTemplate>

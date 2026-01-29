@@ -4,8 +4,23 @@ import { DefaultButton } from '../../components/DefaultButton';
 import { DefaultInput } from '../../components/DefaultInput';
 import { Heading } from '../../components/Heading';
 import { MainTemplate } from '../../templates/MainTemplate';
+import { useRef } from 'react';
+import { useTaskContext } from '../../contexts/TaskContext/useTaskContext';
 
 export function Settings() {
+    const { state } = useTaskContext();
+    const workTimeInput = useRef<HTMLInputElement>();
+    const shortBreakTimeInput = useRef<HTMLInputElement>();
+    const longBreakTimeInput = useRef<HTMLInputElement>();
+
+    function handleSaveSettings(e: React.FormEvent<HTMLFormElement>) {
+        e.preventDefault();
+
+        const workTime = workTimeInput.current?.value;
+        const shortBreakTime = shortBreakTimeInput.current?.value;
+        const longBreakTime = longBreakTimeInput.current?.value;
+    }
+
     return (
         <MainTemplate>
             <Container>
@@ -20,22 +35,31 @@ export function Settings() {
             </Container>
 
             <Container>
-                <form action='' className='form'>
-                    <div className='formRow'>
-                        <DefaultInput id='workTime' labelText='Foco' />
-                    </div>
-
+                <form onSubmit={handleSaveSettings} action='' className='form'>
                     <div className='formRow'>
                         <DefaultInput
-                            id='shortbreakTime'
-                            labelText='Descanso curto'
+                            id='workTime'
+                            labelText='Foco'
+                            ref={workTimeInput}
+                            defaultValue={state.config.workTime}
                         />
                     </div>
 
                     <div className='formRow'>
                         <DefaultInput
-                            id='longBreaktime'
+                            id='shortBreakTime'
+                            labelText='Descanso curto'
+                            ref={shortBreakTimeInput}
+                            defaultValue={state.config.shortBreakTime}
+                        />
+                    </div>
+
+                    <div className='formRow'>
+                        <DefaultInput
+                            id='longBreakTime'
                             labelText='Descanso longo'
+                            ref={longBreakTimeInput}
+                            defaultValue={state.config.longBreakTime}
                         />
                     </div>
                     <div className='formRow'>

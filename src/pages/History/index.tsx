@@ -1,79 +1,57 @@
 import styles from './styles.module.css';
 
 import { TrashIcon } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+
 import { Container } from '../../components/Container';
 import { DefaultButton } from '../../components/DefaultButton';
 import { Heading } from '../../components/Heading';
 import { MainTemplate } from '../../templates/MainTemplate';
+
 import { useTaskContext } from '../../contexts/TaskContext/useTaskContext';
+import { TaskActionTypes } from '../../contexts/TaskContext/taskActions';
+
 import { formatDate } from '../../utils/formatDate';
 import { getTaskStatus } from '../../utils/getTaskStatus';
 import { sortTasks, type SortTasksOptions } from '../../utils/sortTasks';
-import { useEffect, useState } from 'react';
-import { TaskActionTypes } from '../../contexts/TaskContext/taskActions';
+
 import { showMessage } from '../../adapters/showMessage';
 
 export function History() {
     const { state, dispatch } = useTaskContext();
-    const [confirmClearHistory, setConfirmClearHistory] = useState(false);
     const hasTasks = state.tasks.length > 0;
 
-    const [sortTasksOptions, setSortTaskOptions] = useState<SortTasksOptions>(
-        () => {
-            return {
-                tasks: sortTasks({ tasks: state.tasks }),
-                field: 'startDate',
-                direction: 'desc',
-            };
-        },
-    );
+    const [sortField, setSortField] =
+        useState<SortTasksOptions['field']>('startDate');
 
-    function handleSortTasks({ field }: Pick<SortTasksOptions, 'field'>) {
-        const newDirection =
-            sortTasksOptions.direction === 'desc' ? 'asc' : 'desc';
+    const [sortDirection, setSortDirection] =
+        useState<SortTasksOptions['direction']>('desc');
 
-        setSortTaskOptions({
-            tasks: sortTasks({
-                direction: newDirection,
-                tasks: sortTasksOptions.tasks,
-                field,
-            }),
-            direction: newDirection,
-            field,
+    const sortedTasks = useMemo(() => {
+        return sortTasks({
+            tasks: state.tasks,
+            field: sortField,
+            direction: sortDirection,
         });
+    }, [state.tasks, sortField, sortDirection]);
+
+    function handleSortTasks(field: SortTasksOptions['field']) {
+        setSortDirection(prev => (prev === 'desc' ? 'asc' : 'desc'));
+        setSortField(field);
     }
 
     function handleResetHistory() {
         showMessage.dismiss();
+
         showMessage.confirm('Tem certeza?', confirmation => {
-            setConfirmClearHistory(confirmation);
+            if (!confirmation) return;
+            dispatch({ type: TaskActionTypes.RESET_STATE });
         });
     }
 
     useEffect(() => {
-        setSortTaskOptions(prevState => ({
-            ...prevState,
-            tasks: sortTasks({
-                tasks: state.tasks,
-                direction: prevState.direction,
-                field: prevState.field,
-            }),
-        }));
-    }, [state.tasks]);
-
-    useEffect(() => {
         document.title = 'Histórico de tarefas - Chronos Pomodoro';
-    }, []);
 
-    useEffect(() => {
-        if (!confirmClearHistory) return;
-
-        setConfirmClearHistory(false);
-
-        dispatch({ type: TaskActionTypes.RESET_STATE });
-    }, [confirmClearHistory, dispatch]);
-
-    useEffect(() => {
         return () => {
             showMessage.dismiss();
         };
@@ -84,6 +62,7 @@ export function History() {
             <Container>
                 <Heading>
                     <span>History</span>
+
                     {hasTasks && (
                         <span className={styles.buttonContainer}>
                             <DefaultButton
@@ -105,18 +84,14 @@ export function History() {
                             <thead>
                                 <tr>
                                     <th
-                                        onClick={() =>
-                                            handleSortTasks({ field: 'name' })
-                                        }
+                                        onClick={() => handleSortTasks('name')}
                                         className={styles.thSort}
                                     >
                                         Tarefa ↕
                                     </th>
                                     <th
                                         onClick={() =>
-                                            handleSortTasks({
-                                                field: 'duration',
-                                            })
+                                            handleSortTasks('duration')
                                         }
                                         className={styles.thSort}
                                     >
@@ -124,9 +99,7 @@ export function History() {
                                     </th>
                                     <th
                                         onClick={() =>
-                                            handleSortTasks({
-                                                field: 'startDate',
-                                            })
+                                            handleSortTasks('startDate')
                                         }
                                         className={styles.thSort}
                                     >
@@ -138,8 +111,8 @@ export function History() {
                             </thead>
 
                             <tbody>
-                                {sortTasksOptions.tasks.map(task => {
-                                    const taskTypeDisctionary = {
+                                {sortedTasks.map(task => {
+                                    const taskTypeDictionary = {
                                         workTime: 'Foco',
                                         shortBreakTime: 'Descanso curto',
                                         longBreakTime: 'Descanso longo',
@@ -159,7 +132,7 @@ export function History() {
                                                 )}
                                             </td>
                                             <td>
-                                                {taskTypeDisctionary[task.type]}
+                                                {taskTypeDictionary[task.type]}
                                             </td>
                                         </tr>
                                     );

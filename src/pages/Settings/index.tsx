@@ -7,9 +7,10 @@ import { MainTemplate } from '../../templates/MainTemplate';
 import { useRef } from 'react';
 import { useTaskContext } from '../../contexts/TaskContext/useTaskContext';
 import { showMessage } from '../../adapters/showMessage';
+import { TaskActionTypes } from '../../contexts/TaskContext/taskActions';
 
 export function Settings() {
-    const { state } = useTaskContext();
+    const { state, dispatch } = useTaskContext();
     const workTimeInput = useRef<HTMLInputElement>(null);
     const shortBreakTimeInput = useRef<HTMLInputElement>(null);
     const longBreakTimeInput = useRef<HTMLInputElement>(null);
@@ -47,6 +48,16 @@ export function Settings() {
             });
             return;
         }
+
+        dispatch({
+            type: TaskActionTypes.CHANGE_SETTINGS,
+            payload: {
+                workTime,
+                shortBreakTime,
+                longBreakTime,
+            },
+        });
+        showMessage.success('Configurações salvas');
     }
 
     return (
@@ -70,6 +81,7 @@ export function Settings() {
                             labelText='Foco'
                             ref={workTimeInput}
                             defaultValue={state.config.workTime}
+                            type='number'
                         />
                     </div>
 
@@ -79,6 +91,7 @@ export function Settings() {
                             labelText='Descanso curto'
                             ref={shortBreakTimeInput}
                             defaultValue={state.config.shortBreakTime}
+                            type='number'
                         />
                     </div>
 
@@ -88,6 +101,7 @@ export function Settings() {
                             labelText='Descanso longo'
                             ref={longBreakTimeInput}
                             defaultValue={state.config.longBreakTime}
+                            type='number'
                         />
                     </div>
                     <div className='formRow'>

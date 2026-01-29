@@ -6,19 +6,47 @@ import { Heading } from '../../components/Heading';
 import { MainTemplate } from '../../templates/MainTemplate';
 import { useRef } from 'react';
 import { useTaskContext } from '../../contexts/TaskContext/useTaskContext';
+import { showMessage } from '../../adapters/showMessage';
 
 export function Settings() {
     const { state } = useTaskContext();
-    const workTimeInput = useRef<HTMLInputElement>();
-    const shortBreakTimeInput = useRef<HTMLInputElement>();
-    const longBreakTimeInput = useRef<HTMLInputElement>();
+    const workTimeInput = useRef<HTMLInputElement>(null);
+    const shortBreakTimeInput = useRef<HTMLInputElement>(null);
+    const longBreakTimeInput = useRef<HTMLInputElement>(null);
 
     function handleSaveSettings(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
+        showMessage.dismiss();
+        const formErros = [];
 
-        const workTime = workTimeInput.current?.value;
-        const shortBreakTime = shortBreakTimeInput.current?.value;
-        const longBreakTime = longBreakTimeInput.current?.value;
+        const workTime = Number(workTimeInput.current?.value);
+        const shortBreakTime = Number(shortBreakTimeInput.current?.value);
+        const longBreakTime = Number(longBreakTimeInput.current?.value);
+
+        if (isNaN(workTime) || isNaN(shortBreakTime) || isNaN(longBreakTime)) {
+            formErros.push(
+                'Por favor, use apenas números para TODOS os campos.',
+            );
+        }
+
+        if (workTime < 1 || workTime > 99) {
+            formErros.push('Digite valores entre 1 e 99 para Foco.');
+        }
+
+        if (shortBreakTime < 1 || shortBreakTime > 30) {
+            formErros.push('Digite valores entre 1 e 30 para Descanso Curto.');
+        }
+
+        if (longBreakTime < 1 || longBreakTime > 60) {
+            formErros.push('Digite valores entre 1 e 99 para Descanso Longo.');
+        }
+
+        if (formErros.length > 0) {
+            formErros.forEach(error => {
+                showMessage.error(error);
+            });
+            return;
+        }
     }
 
     return (
